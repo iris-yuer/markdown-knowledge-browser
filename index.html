@@ -448,6 +448,43 @@
 
     .md-content pre code { background: transparent; padding: 0; color: var(--text); }
 
+    /* ========================================================== */
+    /* 代码块复制按钮                                              */
+    /* ========================================================== */
+
+    .code-block-wrapper { position: relative; }
+
+    .copy-code-btn {
+      position: absolute; top: 8px; right: 8px;
+      z-index: 10;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+
+    .code-block-wrapper:hover .copy-code-btn { opacity: 1; }
+
+    .copy-code-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .copy-code-btn.copied {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      opacity: 1;
+    }
+
     .md-content blockquote {
       border-left: 4px solid var(--accent); padding: 8px 16px;
       margin: 12px 0; background: var(--bg-card);
@@ -1293,6 +1330,7 @@
         `;
         bindFavButton(node);
         previewArea.scrollTop = 0;
+        addCopyButtons();
       } else if (node.fileType === 'image') {
         // 图片：直接 base64 嵌入
         previewArea.innerHTML = `<div class="preview-header"><div class="preview-breadcrumb">🖼️ <strong>${node.name}</strong> · ${formatSize(node.size)}</div></div><div class="preview-media"><div class="media-loading">⏳ 加载中...</div></div>`;
@@ -1500,6 +1538,7 @@
       });
 
       previewArea.scrollTop = 0;
+      addCopyButtons();
     }
 
     // 兼容旧调用（folderName 是文件对象）
@@ -1596,6 +1635,46 @@
     function getFolderBasePath(folderName) {
       const module = getAllModules().find(m => m.id === STATE.currentModuleId);
       return module?.path || '';
+    }
+
+    /* ========================================================== */
+    /* 代码块复制按钮                                              */
+    /* ========================================================== */
+
+    function addCopyButtons() {
+      document.querySelectorAll('.md-content pre').forEach(pre => {
+        if (pre.closest('.code-block-wrapper')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        const btn = document.createElement('button');
+        btn.className = 'copy-code-btn';
+        btn.innerHTML = '📋 复制';
+        btn.setAttribute('type', 'button');
+        btn.addEventListener('click', async () => {
+          const code = pre.querySelector('code');
+          const text = code ? code.textContent : pre.textContent;
+          try {
+            await navigator.clipboard.writeText(text.trim());
+            btn.innerHTML = '✅ 已复制';
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerHTML = '📋 复制'; btn.classList.remove('copied'); }, 2000);
+          } catch (e) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text.trim();
+            textarea.style.position = 'fixed'; textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            btn.innerHTML = '✅ 已复制';
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerHTML = '📋 复制'; btn.classList.remove('copied'); }, 2000);
+          }
+        });
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(btn);
+        wrapper.appendChild(pre);
+      });
     }
 
     /* ========================================================== */
