@@ -9,9 +9,16 @@
     <img src="https://img.shields.io/badge/electron-28+-brightgreen?style=flat-square" />
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" />
     <img src="https://img.shields.io/badge/version-1.0.0-orange?style=flat-square" />
+    <img src="https://img.shields.io/github/stars/iris-yuer/markdown-knowledge-browser?style=flat-square&label=Stars" />
   </p>
   <br>
 </div>
+
+<!--
+鱼儿知识库浏览器 (Fish Knowledge Browser)
+关键词：Markdown 知识库浏览器 / Obsidian 笔记预览工具 / 本地 Markdown 阅读器 / Electron 桌面应用
+搜索标签：markdown viewer, knowledge base, note-taking, obsidian alternative
+-->
 
 ---
 
