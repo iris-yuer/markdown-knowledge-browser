@@ -16,10 +16,23 @@
 ---
 
 <div align="center">
-  <img src="screenshots/preview.svg" width="90%" alt="应用预览" />
-  <br><br>
+  <table>
+    <tr>
+      <td width="33%"><img src="screenshots/folder-modules.png" width="100%" alt="常用文件夹管理" /></td>
+      <td width="33%"><img src="screenshots/file-preview.png" width="100%" alt="文件选择与预览" /></td>
+      <td width="33%"><img src="screenshots/markdown-render.png" width="100%" alt="Markdown 渲染效果" /></td>
+    </tr>
+    <tr>
+      <td align="center"><strong>📂 常用模块管理</strong></td>
+      <td align="center"><strong>📝 文件选择与预览</strong></td>
+      <td align="center"><strong>✨ Markdown 渲染效果</strong></td>
+    </tr>
+  </table>
+  <br>
   <p><em>🎯 选择本地文件夹，即刻预览你的知识库</em></p>
 </div>
+
+> 💡 以上截图仅为演示效果，实际使用中请选择你自己的知识库文件夹。
 
 ---
 
