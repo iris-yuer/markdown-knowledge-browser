@@ -1,0 +1,50 @@
+{
+  "name": "fish-knowledge-browser-mac",
+  "version": "1.0.0",
+  "description": "鱼儿知识库浏览器 - macOS 本地知识库预览",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "build:mac": "node build-mac.js",
+    "build:mac:intel": "node build-mac.js --intel",
+    "build:mac:silicon": "node build-mac.js --silicon",
+    "build:dmg": "node build-mac-dmg.js"
+  },
+  "keywords": ["knowledge", "obsidian", "markdown", "browser", "macos"],
+  "author": "Iris IPwork",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.iris.fish-browser",
+    "productName": "鱼儿知识库浏览器",
+    "directories": {
+      "output": "../dist"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "artifactName": "${productName}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "鱼儿知识库浏览器",
+      "contents": [
+        { "x": 130, "y": 220, "type": "file" },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    }
+  }
+}

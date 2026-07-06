@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <linearGradient id="header-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4ec9b0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#569cd6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="sidebar-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" style="stop-color:#252526;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e1e1e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 窗口背景 -->
+  <rect width="1200" height="750" rx="12" fill="#1e1e1e"/>
+  <!-- 标题栏 -->
+  <rect width="1200" height="55" rx="12" fill="#252526"/>
+  <rect y="55" width="1200" height="2" fill="#3e3e42"/>
+  <!-- 红绿灯按钮 -->
+  <circle cx="30" cy="28" r="7" fill="#ff5f56" opacity="0.8"/>
+  <circle cx="52" cy="28" r="7" fill="#ffbd2e" opacity="0.8"/>
+  <circle cx="74" cy="28" r="7" fill="#27c93f" opacity="0.8"/>
+
+  <!-- Logo 区域 -->
+  <rect x="90" y="12" width="32" height="32" rx="6" fill="#4ec9b0"/>
+  <text x="106" y="34" text-anchor="middle" fill="#fff" font-size="18">🐟</text>
+  <text x="130" y="33" fill="#d4d4d4" font-size="14" font-weight="600">鱼儿知识库浏览器</text>
+
+  <!-- 搜索框 -->
+  <rect x="400" y="14" width="360" height="28" rx="6" fill="#2d2d30" stroke="#3e3e42" stroke-width="1"/>
+  <text x="412" y="33" fill="#858585" font-size="12">🔍 搜索标题或内容...</text>
+
+  <!-- 主题切换 -->
+  <rect x="920" y="14" width="100" height="28" rx="6" fill="#2d2d30" stroke="#3e3e42" stroke-width="1"/>
+  <text x="960" y="33" text-anchor="middle" fill="#858585" font-size="12">🌙 深色</text>
+
+  <!-- 作者水印 -->
+  <text x="1070" y="24" fill="#858585" font-size="9">作者：鱼儿小姐</text>
+  <text x="1070" y="38" fill="#858585" font-size="9">公众号：鱼儿AI商业谈</text>
+
+  <!-- 侧栏背景 -->
+  <rect y="57" width="280" height="693" fill="#252526"/>
+  <rect x="280" y="57" width="1" height="693" fill="#3e3e42"/>
+
+  <!-- 侧栏 - 选择文件夹按钮 -->
+  <rect x="12" y="70" width="256" height="36" rx="6" fill="#2d2d30" stroke="#3e3e42" stroke-width="1"/>
+  <text x="140" y="93" text-anchor="middle" fill="#d4d4d4" font-size="13">📂 选择本地文件夹</text>
+
+  <!-- 侧栏 - 收藏夹区 -->
+  <rect x="0" y="115" width="280" height="30" fill="transparent"/>
+  <text x="20" y="134" fill="#858585" font-size="11" font-weight="600">▼ ⭐ 我的收藏</text>
+  <rect x="240" y="122" width="28" height="14" rx="7" fill="#2d2d30"/>
+  <text x="254" y="133" text-anchor="middle" fill="#858585" font-size="9">0</text>
+
+  <!-- 侧栏 - 文件区标题 -->
+  <rect x="0" y="150" width="280" height="30" fill="#2d2d30"/>
+  <text x="20" y="169" fill="#858585" font-size="11" font-weight="600">▼ 📂 当前模块文件</text>
+  <rect x="240" y="157" width="28" height="14" rx="7" fill="#2d2d30"/>
+  <text x="254" y="168" text-anchor="middle" fill="#858585" font-size="9">8</text>
+
+  <!-- 文件树 - 文件夹 -->
+  <text x="20" y="198" fill="#d4d4d4" font-size="13">📁 小红书生产</text>
+  <text x="260" y="198" fill="#858585" font-size="10">6</text>
+
+  <text x="34" y="218" fill="#d4d4d4" font-size="13">📂 素材库</text>
+  <text x="260" y="218" fill="#858585" font-size="10">12</text>
+
+  <text x="34" y="238" fill="#d4d4d4" font-size="13">📂 已发布</text>
+  <text x="260" y="238" fill="#858585" font-size="10">8</text>
+
+  <text x="48" y="258" fill="#858585" font-size="12">📄 2024-06-15-爆款笔记.md</text>
+  <text x="48" y="278" fill="#858585" font-size="12">📄 2024-06-16-选题库.md</text>
+  <text x="48" y="298" fill="#858585" font-size="12">📄 2024-06-17-互动话术.md</text>
+  <text x="48" y="318" fill="#858585" font-size="12">📄 2024-06-18-数据分析.md</text>
+  <text x="48" y="338" fill="#4ec9b0" font-size="12" font-weight="500">📄 2024-06-19-内容规划.md</text>
+
+  <text x="34" y="362" fill="#d4d4d4" font-size="13">📂 公众号生产</text>
+  <text x="260" y="362" fill="#858585" font-size="10">5</text>
+
+  <text x="34" y="382" fill="#d4d4d4" font-size="13">📂 视频脚本</text>
+  <text x="260" y="382" fill="#858585" font-size="10">4</text>
+
+  <!-- 统计面板 -->
+  <rect y="690" width="280" height="60" fill="#2d2d30"/>
+  <text x="20" y="710" fill="#d4d4d4" font-size="12" font-weight="600">📊 统计仪表盘</text>
+  <text x="20" y="730" fill="#858585" font-size="11">总文件数</text>
+  <text x="90" y="730" fill="#4ec9b0" font-size="11" font-weight="600">35</text>
+  <text x="140" y="730" fill="#858585" font-size="11">总字数</text>
+  <text x="195" y="730" fill="#4ec9b0" font-size="11" font-weight="600">142.3k</text>
+  <text x="230" y="730" fill="#858585" font-size="11">收藏</text>
+  <text x="260" y="730" fill="#4ec9b0" font-size="11" font-weight="600">0</text>
+
+  <!-- 预览区 - 内容 -->
+  <rect x="320" y="80" width="48" height="48" rx="8" fill="#2d2d30"/>
+  <text x="344" y="110" text-anchor="middle" fill="#4ec9b0" font-size="22">📄</text>
+
+  <text x="380" y="96" fill="#d4d4d4" font-size="16" font-weight="600">2024-06-19-内容规划.md</text>
+  <text x="380" y="116" fill="#858585" font-size="12">📝 3,846 字 · 2024-06-19 10:30</text>
+
+  <!-- 收藏按钮 -->
+  <rect x="1050" y="85" width="85" height="28" rx="6" fill="#2d2d30" stroke="#3e3e42" stroke-width="1"/>
+  <text x="1092" y="103" text-anchor="middle" fill="#858585" font-size="12">☆ 收藏</text>
+
+  <!-- 分隔线 -->
+  <line x1="320" y1="125" x2="1160" y2="125" stroke="#3e3e42" stroke-width="1"/>
+
+  <!-- Markdown 渲染效果 -->
+  <!-- H1 -->
+  <text x="340" y="175" fill="#d4d4d4" font-size="24" font-weight="700">📅 下周内容规划方案</text>
+  <line x1="340" y1="185" x2="480" y2="185" stroke="#4ec9b0" stroke-width="2"/>
+
+  <!-- H2 -->
+  <rect x="340" y="205" width="4" height="24" rx="2" fill="#4ec9b0"/>
+  <text x="355" y="223" fill="#d4d4d4" font-size="18" font-weight="600">一、本周数据回顾</text>
+
+  <text x="340" y="258" fill="#d4d4d4" font-size="14" line-height="1.6">上周共发布 7 篇笔记，总曝光量 12.5w，环比增长</text>
+  <text x="340" y="278" fill="#4ec9b0" font-size="14">+23%</text>
+  <text x="380" y="278" fill="#d4d4d4" font-size="14">。互动率最高的内容为「AI 工具推荐」系列。</text>
+
+  <!-- 表格 -->
+  <rect x="340" y="300" width="500" height="90" rx="6" fill="#2d2d30"/>
+  <text x="360" y="322" fill="#d4d4d4" font-size="12" font-weight="600">分类</text>
+  <line x1="440" y1="300" x2="440" y2="390" stroke="#3e3e42" stroke-width="1"/>
+  <text x="460" y="322" fill="#d4d4d4" font-size="12" font-weight="600">发布数</text>
+  <line x1="540" y1="300" x2="540" y2="390" stroke="#3e3e42" stroke-width="1"/>
+  <text x="560" y="322" fill="#d4d4d4" font-size="12" font-weight="600">曝光量</text>
+  <line x1="640" y1="300" x2="640" y2="390" stroke="#3e3e42" stroke-width="1"/>
+  <text x="660" y="322" fill="#d4d4d4" font-size="12" font-weight="600">互动率</text>
+  <line x1="340" y1="330" x2="840" y2="330" stroke="#3e3e42" stroke-width="1"/>
+
+  <text x="360" y="352" fill="#d4d4d4" font-size="12">AI 工具</text>
+  <text x="460" y="352" fill="#d4d4d4" font-size="12">3</text>
+  <text x="560" y="352" fill="#d4d4d4" font-size="12">5.2w</text>
+  <text x="665" y="352" fill="#4ec9b0" font-size="12">8.7%</text>
+  <line x1="340" y1="360" x2="840" y2="360" stroke="#3e3e42" stroke-width="0.5"/>
+
+  <text x="360" y="380" fill="#d4d4d4" font-size="12">行业观察</text>
+  <text x="460" y="380" fill="#d4d4d4" font-size="12">4</text>
+  <text x="560" y="380" fill="#d4d4d4" font-size="12">7.3w</text>
+  <text x="665" y="380" fill="#4ec9b0" font-size="12">5.2%</text>
+
+  <!-- H2 -->
+  <rect x="340" y="420" width="4" height="24" rx="2" fill="#4ec9b0"/>
+  <text x="355" y="438" fill="#d4d4d4" font-size="18" font-weight="600">二、下周选题规划</text>
+
+  <!-- 列表项 -->
+  <text x="360" y="472" fill="#d4d4d4" font-size="14">•</text>
+  <text x="380" y="472" fill="#d4d4d4" font-size="14" font-weight="500">选题 1：2024 下半年 AI 工具趋势预测</text>
+  <text x="380" y="492" fill="#858585" font-size="12">定位：行业趋势 · 目标阅读时长 3min · 互动目标 500+</text>
+
+  <text x="360" y="520" fill="#d4d4d4" font-size="14">•</text>
+  <text x="380" y="520" fill="#d4d4d4" font-size="14" font-weight="500">选题 2：零基础搭建个人知识库</text>
+  <text x="380" y="540" fill="#858585" font-size="12">定位：教程类 · 目标阅读时长 5min · 互动目标 300+</text>
+
+  <!-- Blockquote -->
+  <rect x="340" y="565" width="4" height="36" rx="2" fill="#4ec9b0"/>
+  <rect x="344" y="565" width="480" height="36" rx="0" fill="#2d2d30" rx="0 6 6 0"/>
+  <text x="360" y="582" fill="#858585" font-size="12" font-style="italic">💡 建议：优先发布选题 1，利用「AI 预测」话题热度获取</text>
+  <text x="360" y="598" fill="#858585" font-size="12" font-style="italic">更大曝光</text>
+
+  <!-- 右下角字体控制 -->
+  <rect x="1080" y="690" width="90" height="36" rx="8" fill="#2d2d30" stroke="#3e3e42" stroke-width="1"/>
+  <text x="1090" y="713" fill="#d4d4d4" font-size="14">A−</text>
+  <text x="1125" y="713" fill="#858585" font-size="12">16px</text>
+  <text x="1155" y="713" fill="#d4d4d4" font-size="14">A+</text>
+</svg>

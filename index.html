@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鱼儿知识库浏览器</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+
+  <!-- Markdown 渲染库 (带 SRI 完整性校验) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"
+          integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi"
+          crossorigin="anonymous"></script>
+
+  <style>
+    /* ========================================================== */
+    /* 主题系统：3 套主题                                            */
+    /* ========================================================== */
+
+    :root[data-theme="dark"] {
+      --bg: #1e1e1e; --bg-sidebar: #252526; --bg-main: #1e1e1e;
+      --bg-card: #2d2d30; --bg-hover: #3e3e42;
+      --text: #d4d4d4; --text-muted: #858585; --text-title: #ffffff;
+      --border: #3e3e42; --accent: #4ec9b0; --accent-hover: #5fd9c0;
+      --link: #4ec9b0; --code-bg: #1a1a1a;
+      --shadow: rgba(0,0,0,0.3);
+      --gradient: linear-gradient(135deg, #4ec9b0 0%, #569cd6 100%);
+      --favorite: #fbbf24; --danger: #ef4444;
+    }
+
+    :root[data-theme="obsidian"] {
+      --bg: #2e2e3e; --bg-sidebar: #262633; --bg-main: #2e2e3e;
+      --bg-card: #3a3a4a; --bg-hover: #4a4a5a;
+      --text: #dcddde; --text-muted: #9999a8; --text-title: #c4b5fd;
+      --border: #4a4a5a; --accent: #a78bfa; --accent-hover: #c4b5fd;
+      --link: #a78bfa; --code-bg: #1f1f28;
+      --shadow: rgba(0,0,0,0.4);
+      --gradient: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+      --favorite: #fbbf24; --danger: #ef4444;
+    }
+
+    :root[data-theme="notion"] {
+      --bg: #ffffff; --bg-sidebar: #f7f6f3; --bg-main: #ffffff;
+      --bg-card: #ffffff; --bg-hover: #f1f0ec;
+      --text: #37352f; --text-muted: #787774; --text-title: #37352f;
+      --border: #e9e9e7; --accent: #2383e2; --accent-hover: #1f6ec0;
+      --link: #2383e2; --code-bg: #f7f6f3;
+      --shadow: rgba(0,0,0,0.06);
+      --gradient: linear-gradient(135deg, #2383e2 0%, #5e9eff 100%);
+      --favorite: #f59e0b; --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg); color: var(--text);
+      height: 100vh; overflow: hidden;
+      display: grid; grid-template-rows: 60px 1fr;
+    }
+
+    /* ========================================================== */
+    /* Header                                                       */
+    /* ========================================================== */
+
+    .header {
+      background: var(--bg-sidebar); border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 280px 1fr auto;
+      align-items: center; padding: 0 20px; gap: 16px;
+      box-shadow: 0 2px 8px var(--shadow); z-index: 100;
+    }
+
+    .logo {
+      font-size: 16px; font-weight: 600;
+      background: var(--gradient); -webkit-background-clip: text;
+      background-clip: text; color: transparent;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .logo-icon {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+
+    .search-box {
+      display: flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0 12px; height: 36px; max-width: 480px;
+    }
+
+    .search-box input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--text); font-size: 14px; padding: 0 8px;
+    }
+
+    .search-box input::placeholder { color: var(--text-muted); }
+
+    .controls { display: flex; gap: 8px; align-items: center; }
+
+    .watermark {
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      padding-right: 4px;
+      opacity: 0.7;
+    }
+
+    .control-select {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 10px; font-size: 13px; cursor: pointer; outline: none;
+      max-width: 160px;
+    }
+
+    .control-select:hover { background: var(--bg-hover); }
+
+    .icon-btn {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 8px; font-size: 14px; cursor: pointer; outline: none;
+      transition: all 0.15s;
+    }
+
+    .icon-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+
+    /* ========================================================== */
+    /* Main                                                         */
+    /* ========================================================== */
+
+    .main { display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
+
+    /* ========================================================== */
+    /* Sidebar                                                      */
+    /* ========================================================== */
+
+    .sidebar {
+      background: var(--bg-sidebar); border-right: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+
+    .sidebar-top { padding: 12px; border-bottom: 1px solid var(--border); }
+
+    .module-info {
+      background: var(--bg-card); border-radius: 6px;
+      padding: 8px 12px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px; font-size: 13px;
+    }
+
+    .module-info-icon { font-size: 18px; }
+
+    .module-info-name { color: var(--text-title); font-weight: 500; }
+
+    .module-info-path {
+      font-size: 11px; color: var(--text-muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .folder-actions { display: flex; flex-direction: column; gap: 6px; }
+
+    .action-btn {
+      padding: 8px 12px; border-radius: 6px; font-size: 13px;
+      cursor: pointer; border: none; text-align: left;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .action-btn.primary {
+      background: var(--accent); color: white; font-weight: 500;
+    }
+
+    .action-btn.primary:hover { background: var(--accent-hover); }
+
+    .action-btn.secondary {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .action-btn.secondary:hover { background: var(--bg-hover); border-color: var(--accent); }
+
+    .action-btn.sync {
+      background: var(--bg-card); color: var(--accent);
+      border: 1px solid var(--accent); font-weight: 500;
+    }
+
+    .action-btn.sync:hover { background: var(--accent); color: white; }
+
+    .drop-zone {
+      margin: 0 12px 12px; padding: 12px;
+      border: 2px dashed var(--border); border-radius: 8px;
+      text-align: center; color: var(--text-muted);
+      font-size: 12px; cursor: pointer; transition: all 0.2s;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent); background: var(--bg-hover); color: var(--accent);
+    }
+
+    .drop-zone-icon { font-size: 18px; margin-bottom: 4px; }
+
+    /* ========================================================== */
+    /* 折叠 Section (可点击收起)                                    */
+    /* ========================================================== */
+
+    .collapsible-section {
+      border-top: 1px solid var(--border);
+    }
+
+    .collapsible-header {
+      padding: 8px 12px; font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      font-weight: 600; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: background 0.15s;
+      user-select: none;
+    }
+
+    .collapsible-header:hover { background: var(--bg-hover); color: var(--text); }
+
+    .collapsible-arrow {
+      transition: transform 0.2s; font-size: 10px;
+      display: inline-block; margin-right: 4px;
+    }
+
+    .collapsible-section.collapsed .collapsible-arrow { transform: rotate(-90deg); }
+
+    .collapsible-section.collapsed .collapsible-content { display: none; }
+
+    .collapsible-count {
+      background: var(--bg-card); padding: 2px 6px;
+      border-radius: 10px; font-size: 10px; color: var(--text-muted);
+      font-weight: normal; text-transform: none; letter-spacing: 0;
+    }
+
+    .collapsible-content { padding: 4px 0; }
+
+    /* ========================================================== */
+    /* 文件夹/文件项                                                */
+    /* ========================================================== */
+
+    .folder-item {
+      padding: 6px 12px; cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; gap: 6px;
+      transition: background 0.15s; color: var(--text);
+      border-left: 3px solid transparent;
+    }
+
+    .folder-item:hover { background: var(--bg-hover); }
+
+    .folder-item.active {
+      background: var(--bg-hover);
+      border-left-color: var(--accent);
+      color: var(--text-title); font-weight: 500;
+    }
+
+    .folder-icon { font-size: 14px; }
+
+    .file-list { padding-left: 24px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+
+    .folder-item.expanded + .file-list { max-height: 800px; }
+
+    .file-item {
+      padding: 5px 12px; cursor: pointer; font-size: 12px;
+      color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s; border-radius: 0 6px 6px 0;
+      justify-content: space-between;
+    }
+
+    .file-item:hover { background: var(--bg-hover); color: var(--text); }
+    .file-item.active { background: var(--bg-hover); color: var(--accent); }
+
+    .file-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .file-item-fav {
+      opacity: 0; font-size: 11px; cursor: pointer;
+      padding: 2px; transition: all 0.15s;
+    }
+
+    .file-item:hover .file-item-fav,
+    .file-item-fav.active { opacity: 1; }
+
+    .file-item-fav.active { color: var(--favorite); }
+
+    /* ========================================================== */
+    /* 统计仪表盘                                                  */
+    /* ========================================================== */
+
+    .stats-section {
+      margin-top: auto; padding: 12px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border); font-size: 12px;
+    }
+
+    .stats-title {
+      font-weight: 600; color: var(--text-title);
+      margin-bottom: 8px; font-size: 13px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .stat-row {
+      display: flex; justify-content: space-between;
+      padding: 4px 0; color: var(--text-muted);
+    }
+
+    .stat-value { color: var(--accent); font-weight: 600; }
+
+    /* ========================================================== */
+    /* 右侧预览区                                                  */
+    /* ========================================================== */
+
+    .preview {
+      background: var(--bg-main); overflow-y: auto;
+      padding: 40px 60px; max-width: 100%; position: relative;
+    }
+
+    .preview-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; color: var(--text-muted); text-align: center;
+    }
+
+    .preview-empty-icon { font-size: 64px; opacity: 0.3; margin-bottom: 16px; }
+    .preview-empty-text { font-size: 14px; line-height: 1.8; }
+    .preview-empty-text code {
+      background: var(--bg-card); padding: 2px 6px;
+      border-radius: 4px; color: var(--accent);
+    }
+
+    /* 树形文件结构 */
+    .tree-node {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text);
+      border-left: 2px solid transparent;
+      transition: background 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .tree-node:hover { background: var(--bg-hover); }
+    .tree-node.active {
+      background: var(--bg-hover);
+      border-left-color: var(--accent);
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .tree-folder { font-weight: 500; }
+    .tree-folder .tree-icon { font-size: 14px; }
+    .tree-file { color: var(--text-muted); }
+    .tree-file.tree-file-image { color: #4ec9b0; }
+    .tree-file.tree-file-video { color: #f59e0b; }
+    .tree-file.tree-file-audio { color: #a78bfa; }
+    .tree-file.tree-file-pdf { color: #ef4444; }
+    .tree-file .tree-icon { font-size: 13px; }
+    .tree-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tree-count {
+      background: var(--bg-card);
+      padding: 0 6px;
+      border-radius: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* 媒体预览区 */
+    .preview-media {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .media-loading {
+      color: var(--text-muted);
+      padding: 40px;
+      font-size: 14px;
+    }
+
+    .preview-header {
+      max-width: 900px; margin: 0 auto 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+
+    .preview-breadcrumb { font-size: 13px; color: var(--text-muted); }
+    .preview-breadcrumb strong { color: var(--text-title); }
+
+    .fav-toggle-btn {
+      background: var(--bg-card); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .fav-toggle-btn:hover { border-color: var(--favorite); color: var(--favorite); }
+
+    .fav-toggle-btn.active {
+      background: var(--favorite); color: white; border-color: var(--favorite);
+    }
+
+    /* ========================================================== */
+    /* Markdown 渲染样式                                           */
+    /* ========================================================== */
+
+    .md-content { max-width: 900px; margin: 0 auto; line-height: 1.7; }
+
+    .md-content h1 {
+      font-size: 28px; color: var(--text-title);
+      margin: 24px 0 16px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .md-content h2 {
+      font-size: 22px; color: var(--text-title);
+      margin: 24px 0 12px; padding-left: 12px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .md-content h3 { font-size: 18px; color: var(--text-title); margin: 20px 0 10px; }
+    .md-content h4 { font-size: 15px; color: var(--accent); margin: 16px 0 8px; }
+
+    .md-content p { margin: 10px 0; color: var(--text); }
+    .md-content ul, .md-content ol { margin: 10px 0 10px 24px; color: var(--text); }
+    .md-content li { padding: 3px 0; }
+
+    .md-content a { color: var(--link); text-decoration: none; }
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content code {
+      background: var(--code-bg); padding: 2px 6px;
+      border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 13px; color: var(--accent);
+    }
+
+    .md-content pre {
+      background: var(--code-bg); padding: 16px;
+      border-radius: 8px; overflow-x: auto;
+      margin: 12px 0; border: 1px solid var(--border);
+    }
+
+    .md-content pre code { background: transparent; padding: 0; color: var(--text); }
+
+    .md-content blockquote {
+      border-left: 4px solid var(--accent); padding: 8px 16px;
+      margin: 12px 0; background: var(--bg-card);
+      border-radius: 0 6px 6px 0; color: var(--text-muted);
+    }
+
+    .md-content table {
+      width: 100%; border-collapse: collapse;
+      margin: 12px 0; font-size: 13px;
+    }
+
+    .md-content th {
+      background: var(--bg-card); padding: 8px 12px;
+      text-align: left; border: 1px solid var(--border);
+      font-weight: 600; color: var(--text-title);
+    }
+
+    .md-content td { padding: 8px 12px; border: 1px solid var(--border); }
+    .md-content tr:nth-child(even) td { background: var(--bg-card); }
+
+    .md-content hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    .md-content img {
+      max-width: 100%; border-radius: 8px; margin: 12px 0;
+      display: block;
+    }
+
+    .md-content video {
+      max-width: 100%; border-radius: 8px; margin: 12px 0;
+      display: block; background: #000;
+    }
+
+    .md-content strong { color: var(--text-title); font-weight: 600; }
+
+    .media-fallback {
+      display: inline-block; padding: 8px 12px;
+      background: var(--bg-card); border: 1px dashed var(--border);
+      border-radius: 6px; color: var(--text-muted); font-size: 12px;
+      margin: 8px 0;
+    }
+
+    /* 滚动条 */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ========================================================== */
+    /* 模块管理弹窗                                                */
+    /* ========================================================== */
+
+    .modal-mask {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: none;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+
+    .modal-mask.active { display: flex; }
+
+    .modal {
+      background: var(--bg-card); border-radius: 12px;
+      padding: 24px; max-width: 540px; width: 90%;
+      max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 8px 32px var(--shadow);
+    }
+
+    .modal-title {
+      font-size: 16px; font-weight: 600; color: var(--text-title);
+      margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .modal-close { cursor: pointer; color: var(--text-muted); font-size: 20px; }
+    .modal-close:hover { color: var(--text-title); }
+
+    .form-group { margin-bottom: 12px; }
+
+    .form-label {
+      display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px;
+    }
+
+    .form-input {
+      width: 100%; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 10px; font-size: 13px; outline: none;
+    }
+
+    .form-input:focus { border-color: var(--accent); }
+
+    .form-row { display: flex; gap: 8px; }
+    .form-row > * { flex: 1; }
+
+    .modal-actions {
+      display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;
+    }
+
+    .btn {
+      padding: 8px 16px; border-radius: 6px; font-size: 13px;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--bg-hover); }
+
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+
+    .btn-warning {
+      background: var(--bg-card); color: var(--favorite);
+      border: 1px solid var(--favorite);
+    }
+
+    .module-list { margin-top: 16px; }
+
+    .module-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; background: var(--bg);
+      border-radius: 6px; margin-bottom: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .module-item.builtin { border-left: 3px solid var(--accent); }
+    .module-item.hidden { opacity: 0.5; }
+
+    .module-info { flex: 1; min-width: 0; }
+    .module-name { font-weight: 500; color: var(--text-title); }
+    .module-path {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 2px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .module-actions { display: flex; gap: 6px; }
+
+    .module-item .btn {
+      padding: 4px 10px; font-size: 12px;
+    }
+
+    /* ===== 侧栏折叠 ===== */
+    .sidebar-toggle {
+      position: fixed;
+      left: 280px;
+      top: 12px;
+      width: 24px;
+      height: 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      z-index: 200;
+      transition: left 0.25s ease;
+      user-select: none;
+    }
+    .sidebar-toggle:hover { background: var(--bg-hover); color: var(--accent); }
+    .sidebar.collapsed {
+      min-width: 0;
+      width: 0;
+      overflow: hidden;
+      border: none;
+    }
+    .sidebar.collapsed ~ .sidebar-toggle { left: 0; }
+
+    .main {
+      position: relative;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      transition: grid-template-columns 0.25s ease;
+    }
+    .main.sidebar-hidden {
+      grid-template-columns: 0 1fr;
+    }
+    .sidebar {
+      position: relative;
+      transition: transform 0.25s ease;
+    }
+
+    /* ===== 字体大小控制 ===== */
+    .font-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      box-shadow: 0 4px 12px var(--shadow);
+      z-index: 100;
+    }
+    .font-btn {
+      width: 32px; height: 32px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-btn:hover { background: var(--bg-hover); }
+    .font-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 0 6px;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .help-text {
+      font-size: 11px; color: var(--text-muted);
+      background: var(--bg); padding: 8px 10px;
+      border-radius: 4px; margin-top: 8px;
+      border-left: 3px solid var(--accent);
+    }
+
+    /* 图标选择器 */
+    .icon-picker {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 8px; background: var(--bg);
+      border-radius: 6px; border: 1px solid var(--border);
+    }
+    .icon-option {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer;
+      font-size: 18px; transition: all 0.15s;
+      border: 2px solid transparent;
+    }
+    .icon-option:hover { background: var(--bg-hover); }
+    .icon-option.selected {
+      border-color: var(--accent);
+      background: var(--bg-hover);
+    }
+
+    .module-item.active-module {
+      border-left: 3px solid var(--accent) !important;
+      background: var(--bg-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== Header ==================== -->
+  <header class="header">
+    <div class="logo">
+      <img src="logo.png" class="logo-icon" alt="logo">
+      <span>鱼儿知识库浏览器</span>
+    </div>
+
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="searchInput" placeholder="搜索标题或内容...">
+    </div>
+
+    <div class="controls">
+      <div class="watermark">
+        <div>作者：鱼儿小姐</div>
+        <div>公众号：鱼儿AI商业谈</div>
+      </div>
+      <button class="icon-btn" id="manageModulesBtn" title="管理模块">⚙️</button>
+      <select class="control-select" id="themeSelect" title="切换主题">
+        <option value="dark">🌙 深色</option>
+        <option value="obsidian">🟣 Obsidian</option>
+        <option value="notion">☀️ Notion</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- ==================== Main ==================== -->
+  <div class="main">
+
+    <!-- ==================== Sidebar ==================== -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sidebar-top">
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:6px;">📌 常用模块</div>
+        <div class="module-info" id="moduleCard" style="cursor:pointer;" title="点击切换/管理模块">
+          <span class="module-info-icon" id="currentModuleIcon">📱</span>
+          <div style="flex:1; min-width:0;">
+            <div class="module-info-name" id="currentModuleName">我的知识库</div>
+            <div class="module-info-path" id="currentModulePath">点击「选择本地文件夹」加载</div>
+          </div>
+          <span style="color:var(--text-muted); font-size:11px;">切换 ▾</span>
+        </div>
+
+        <div class="folder-actions">
+          <button class="action-btn secondary" id="selectFolderBtn">📂 选择本地文件夹</button>
+        </div>
+
+        <input type="file" id="folderInput" webkitdirectory multiple style="display:none;">
+      </div>
+
+      <!-- ⭐ 收藏夹（可折叠） -->
+      <div class="collapsible-section" id="favoritesSection" style="display:none;">
+        <div class="collapsible-header" id="favoritesHeader">
+          <span>
+            <span class="collapsible-arrow">▼</span>
+            ⭐ 我的收藏
+          </span>
+          <span class="collapsible-count" id="favoritesCount">0</span>
+        </div>
+        <div class="collapsible-content" id="favoritesList"></div>
+      </div>
+
+      <!-- 📂 当前模块文件（可折叠） -->
+      <div class="collapsible-section" id="filesSection">
+        <div class="collapsible-header" id="filesHeader">
+          <span>
+            <span class="collapsible-arrow">▼</span>
+            📂 当前模块文件
+          </span>
+          <span class="collapsible-count" id="filesCount">0</span>
+        </div>
+        <div class="collapsible-content" id="folderList"></div>
+      </div>
+
+      <div class="stats-section">
+        <div class="stats-title">📊 统计仪表盘</div>
+        <div class="stat-row">
+          <span>总文件数</span>
+          <span class="stat-value" id="statFiles">0</span>
+        </div>
+        <div class="stat-row">
+          <span>总字数</span>
+          <span class="stat-value" id="statWords">0</span>
+        </div>
+        <div class="stat-row">
+          <span>最高互动</span>
+          <span class="stat-value" id="statMaxEng">-</span>
+        </div>
+        <div class="stat-row">
+          <span>收藏数</span>
+          <span class="stat-value" id="statFav">0</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== Preview ==================== -->
+    <main class="preview" id="previewArea">
+      <div class="preview-empty">
+        <div class="preview-empty-icon">🐟</div>
+        <div class="preview-empty-text">
+          👈 从左侧选择文件夹查看文件
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- 侧栏折叠按钮（fixed 定位，必须放外面） -->
+  <div class="sidebar-toggle" id="sidebarToggle" title="收起/展开侧栏">
+    <span class="toggle-icon">◀</span>
+  </div>
+
+  <!-- 字体大小控制 -->
+  <div class="font-controls">
+    <button class="font-btn" id="fontSmaller" title="字体缩小">A−</button>
+    <span class="font-label" id="fontSizeLabel">16px</span>
+    <button class="font-btn" id="fontBigger" title="字体放大">A+</button>
+  </div>
+
+  <!-- ==================== 模块管理弹窗 ==================== -->
+  <div class="modal-mask" id="moduleModal">
+    <div class="modal">
+      <div class="modal-title">
+        ⚙️ 模块管理
+        <span class="modal-close" onclick="closeModal()">×</span>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">➕ 新增模块</div>
+        <div class="form-row">
+          <input type="text" class="form-input" id="newModuleName" placeholder="模块名称（如：公众号）">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">选择图标</div>
+        <div class="icon-picker" id="iconPicker"></div>
+      </div>
+
+      <div class="form-group">
+        <input type="text" class="form-input" id="newModulePath" placeholder="知识库文件夹路径（如：E:\vault\03_创意生产层\公众号生产）">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">完成</button>
+        <button class="btn btn-primary" onclick="addCustomModule()">➕ 添加模块</button>
+      </div>
+
+      <div style="border-top:1px solid var(--border); margin:12px 0 8px; padding-top:8px;">
+        <div class="form-label">📦 我的模块（点击切换）</div>
+      </div>
+      <div class="module-list" id="moduleList"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- JavaScript                                                     -->
+  <!-- ============================================================ -->
+  <script src="data.js"></script>
+  <script>
+    /* ========================================================== */
+    /* 状态管理                                                    */
+    /* ========================================================== */
+
+    const STATE = {
+      theme: localStorage.getItem('fish_theme') || 'dark',
+      currentModuleId: 'xhs',
+      currentFolder: null,
+      currentFile: null,
+      searchKeyword: '',
+      data: null,
+      tree: null,
+      expandedPaths: new Set(),
+      favorites: JSON.parse(localStorage.getItem('fish_favorites') || '[]'),
+      lastFolderInfo: JSON.parse(localStorage.getItem('fish_last_folder') || 'null'),
+      modules: JSON.parse(localStorage.getItem('fish_modules') || 'null')
+    };
+
+    /* ========================================================== */
+    /* 模块管理                                                    */
+    /* ========================================================== */
+
+    let customModules = JSON.parse(localStorage.getItem('fish_custom_modules') || '[]');
+
+    // 首次使用：创建一个默认模块（但不自动加载任何数据）
+    if (customModules.length === 0) {
+      customModules.push({
+        id: 'default_' + Date.now(),
+        name: '我的知识库',
+        icon: '📂',
+        path: '',
+        isBuiltin: false
+      });
+      localStorage.setItem('fish_custom_modules', JSON.stringify(customModules));
+    }
+
+    function getAllModules() {
+      return customModules;
+    }
+
+    function switchModule(moduleId) {
+      STATE.currentModuleId = moduleId;
+      STATE.currentFolder = null;
+      STATE.currentFile = null;
+      STATE.data = null;
+      STATE.tree = null;
+      STATE.searchKeyword = '';
+      document.getElementById('searchInput').value = '';
+
+      const module = getAllModules().find(m => m.id === moduleId);
+      if (!module || module._isManaging) return;
+
+      // 更新顶部卡片信息
+      document.getElementById('currentModuleIcon').textContent = module.icon;
+      document.getElementById('currentModuleName').textContent = module.name;
+      document.getElementById('currentModulePath').textContent = module.path || '（无路径）';
+
+      // 重置 UI
+      renderFolderTree();
+      renderFavorites();
+      updateStats();
+
+      // 1. 优先加载真实文件夹（如果模块有 path 且是绝对路径）
+      const absPath = resolveAbsolutePath(module.path);
+      if (absPath && window.electronAPI) {
+        window.electronAPI.readByPath(absPath).then(result => {
+          if (result && result.success && result.data) {
+            // 把树根设置为我们想要的 path
+            if (!result.data.path) result.data.path = absPath;
+            applyFolderData(result.data, absPath);
+            // 开启实时同步
+            window.electronAPI.watchFolder(absPath).catch(() => {});
+            return;
+          }
+          // 加载失败，尝试示例数据
+          loadModuleSampleData(module);
+        });
+        return;
+      }
+
+      // 2. 没有真实路径，加载示例数据
+      loadModuleSampleData(module);
+    }
+
+    function loadModuleSampleData(module) {
+      let sampleData = null;
+      if (module.sampleData && typeof module.sampleData === 'function') {
+        sampleData = module.sampleData();
+      } else if (module.sampleData) {
+        sampleData = module.sampleData;
+      }
+
+      if (sampleData) {
+        applyFolderData(sampleData, module.path || '示例数据');
+      } else {
+        showEmptyModuleGuide(module);
+      }
+    }
+
+    function resolveAbsolutePath(p) {
+      if (!p || p.startsWith('（') || p === '示例数据') return null;
+      // 如果是绝对路径，直接返回
+      if (p.match(/^[a-zA-Z]:[\\\/]/) || p.startsWith('/') || p.startsWith('\\\\')) {
+        return p;
+      }
+      // 否则拼接到 vault 根
+      // 当前软件位置: iris agent/02_local-xhs-browser/electron/
+      // vault 根: iris-IPwork/
+      const path = p.replace(/\\/g, '/');
+      return null; // 相对路径暂不解析，由用户点击"选择本地文件夹"选择
+    }
+
+    function showEmptyModuleGuide(module) {
+      const previewArea = document.getElementById('previewArea');
+      previewArea.innerHTML = `
+        <div class="preview-empty">
+          <div class="preview-empty-icon">${module.icon}</div>
+          <div class="preview-empty-text">
+            <strong style="font-size:18px; color:var(--text-title);">${module.name}模块</strong><br><br>
+            📂 ${module.isBuiltin ? '预置模块' : '自定义模块'}<br>
+            路径：<code>${module.path || '未设置'}</code><br><br>
+            点击左侧 <code>📂 选择本地文件夹</code> 加载真实文件<br>
+            或点击 <code>🎯 加载示例数据</code>（仅小红书有）
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('moduleCard').addEventListener('click', () => {
+      openModuleModal();
+    });
+
+    document.getElementById('manageModulesBtn').addEventListener('click', () => {
+      openModuleModal();
+    });
+
+    function openModuleModal() {
+      initIconPicker();
+      renderModuleList();
+      document.getElementById('moduleModal').classList.add('active');
+      // 聚焦到输入框
+      setTimeout(() => document.getElementById('newModuleName')?.focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('moduleModal').classList.remove('active');
+    }
+
+    /* ========================================================== */
+    /* 主题切换                                                    */
+    /* ========================================================== */
+
+    function setTheme(theme) {
+      STATE.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('fish_theme', theme);
+    }
+
+    document.getElementById('themeSelect').addEventListener('change', (e) => {
+      setTheme(e.target.value);
+    });
+
+    /* ========================================================== */
+    /* 模块管理（纯自定义 + 图标选择器）                           */
+    /* ========================================================== */
+
+    // 图标选择器
+    const ICON_PRESETS = ['📱', '🎵', '🎬', '📝', '📊', '🖥️', '🎨', '📷', '📖', '📌', '🏠', '🛠️', '🔥', '💡', '📂'];
+    let selectedIcon = ICON_PRESETS[0];
+
+    function initIconPicker() {
+      const picker = document.getElementById('iconPicker');
+      picker.innerHTML = ICON_PRESETS.map(icon =>
+        `<span class="icon-option ${icon === selectedIcon ? 'selected' : ''}" data-icon="${icon}">${icon}</span>`
+      ).join('');
+
+      picker.querySelectorAll('.icon-option').forEach(el => {
+        el.addEventListener('click', () => {
+          picker.querySelectorAll('.icon-option').forEach(e => e.classList.remove('selected'));
+          el.classList.add('selected');
+          selectedIcon = el.dataset.icon;
+        });
+      });
+    }
+
+
+    function addCustomModule() {
+      const name = document.getElementById('newModuleName').value.trim();
+      const path = document.getElementById('newModulePath').value.trim();
+
+      if (!name) { alert('请输入模块名称'); return; }
+      if (!path) { alert('请输入文件夹路径'); return; }
+
+      const id = 'mod_' + Date.now();
+      customModules.push({ id, name, icon: selectedIcon, path });
+
+      localStorage.setItem('fish_custom_modules', JSON.stringify(customModules));
+
+      document.getElementById('newModuleName').value = '';
+      document.getElementById('newModulePath').value = '';
+
+      renderModuleList();
+      switchModule(id);
+      closeModal();
+    }
+
+    function removeCustomModule(id) {
+      if (!confirm('确定删除这个模块？')) return;
+      customModules = customModules.filter(m => m.id !== id);
+      localStorage.setItem('fish_custom_modules', JSON.stringify(customModules));
+      renderModuleList();
+      if (STATE.currentModuleId === id && customModules.length > 0) {
+        switchModule(customModules[0].id);
+      }
+    }
+
+    function renderModuleList() {
+      const list = document.getElementById('moduleList');
+
+      if (customModules.length === 0) {
+        list.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:12px; padding:20px;">还没有模块，点击上方添加</div>';
+        return;
+      }
+
+      list.innerHTML = customModules.map(m => `
+        <div class="module-item ${STATE.currentModuleId === m.id ? 'active-module' : ''}" style="cursor:pointer;" onclick="switchModule('${m.id}'); closeModal();">
+          <div class="module-info">
+            <div class="module-name">${m.icon} ${m.name}</div>
+            <div class="module-path">📁 ${m.path}</div>
+          </div>
+          <div class="module-actions">
+            <button class="btn btn-danger" onclick="event.stopPropagation(); removeCustomModule('${m.id}')" style="font-size:11px;">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ========================================================== */
+    /* 可折叠 Section                                              */
+    /* ========================================================== */
+
+    function setupCollapsible(sectionId, headerId) {
+      const section = document.getElementById(sectionId);
+      const header = document.getElementById(headerId);
+      header.addEventListener('click', () => {
+        section.classList.toggle('collapsed');
+      });
+    }
+
+    setupCollapsible('favoritesSection', 'favoritesHeader');
+    setupCollapsible('filesSection', 'filesHeader');
+
+    /* ========================================================== */
+    /* 侧栏折叠                                                  */
+    /* ========================================================== */
+
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      const main = document.querySelector('.main');
+      const collapsed = !sidebar.classList.contains('collapsed');
+
+      sidebar.classList.toggle('collapsed');
+      main.classList.toggle('sidebar-hidden');
+
+      document.querySelector('.toggle-icon').textContent = collapsed ? '▶' : '◀';
+      localStorage.setItem('fish_sidebar_collapsed', collapsed);
+    });
+
+    // 恢复折叠状态
+    if (localStorage.getItem('fish_sidebar_collapsed') === 'true') {
+      document.getElementById('sidebar').classList.add('collapsed');
+      document.querySelector('.main').classList.add('sidebar-hidden');
+      document.querySelector('.toggle-icon').textContent = '▶';
+    }
+
+    /* ========================================================== */
+    /* 字体大小调节                                              */
+    /* ========================================================== */
+
+    let previewFontSize = parseInt(localStorage.getItem('fish_font_size') || '16');
+
+    function applyFontSize() {
+      const preview = document.getElementById('previewArea');
+      const mdContent = preview.querySelector('.md-content');
+      if (mdContent) {
+        mdContent.style.fontSize = previewFontSize + 'px';
+        mdContent.style.lineHeight = (previewFontSize * 1.6) + 'px';
+      }
+      document.getElementById('fontSizeLabel').textContent = previewFontSize + 'px';
+    }
+
+    document.getElementById('fontSmaller').addEventListener('click', () => {
+      if (previewFontSize > 12) {
+        previewFontSize -= 2;
+        localStorage.setItem('fish_font_size', previewFontSize);
+        applyFontSize();
+      }
+    });
+
+    document.getElementById('fontBigger').addEventListener('click', () => {
+      if (previewFontSize < 28) {
+        previewFontSize += 2;
+        localStorage.setItem('fish_font_size', previewFontSize);
+        applyFontSize();
+      }
+    });
+
+    // 初始化字号
+    document.getElementById('fontSizeLabel').textContent = previewFontSize + 'px';
+
+    // 重写 showFileFromTree 在渲染后应用字号
+    const origShowFileFromTree = showFileFromTree;
+    showFileFromTree = function(node) {
+      origShowFileFromTree(node);
+      applyFontSize();
+    };
+
+    /* ========================================================== */
+    /* 文件树渲染（树形结构 + 全类型文件）                          */
+    /* ========================================================== */
+
+    function renderFolderTree() {
+      const folderList = document.getElementById('folderList');
+      folderList.innerHTML = '';
+
+      if (!STATE.tree) {
+        folderList.innerHTML = `
+          <div style="padding:20px 12px; color:var(--text-muted); font-size:12px; text-align:center; line-height:1.8;">
+            📭 暂无文件<br><br>
+            <span style="font-size:11px;">点击 <code>📂 选择本地文件夹</code></span>
+          </div>
+        `;
+        document.getElementById('filesCount').textContent = '0';
+        return;
+      }
+
+      // 统计
+      let fileCount = 0;
+      const countFiles = (node) => {
+        if (node.type === 'file') fileCount++;
+        if (node.children) node.children.forEach(countFiles);
+      };
+      countFiles(STATE.tree);
+      document.getElementById('filesCount').textContent = fileCount;
+
+      // 渲染树
+      const renderNode = (node, depth) => {
+        if (node.type === 'folder') {
+          const folderEl = document.createElement('div');
+          folderEl.className = 'tree-node tree-folder';
+          folderEl.style.paddingLeft = (8 + depth * 14) + 'px';
+
+          const isExpanded = STATE.expandedPaths.has(node.path);
+          const childCount = node.children ? node.children.length : 0;
+          const folderName = node.name || '根目录';
+
+          folderEl.innerHTML = `
+            <span class="tree-icon">${isExpanded ? '📂' : '📁'}</span>
+            <span class="tree-name">${folderName}</span>
+            <span class="tree-count">${childCount}</span>
+          `;
+          folderEl.addEventListener('click', () => {
+            if (STATE.expandedPaths.has(node.path)) {
+              STATE.expandedPaths.delete(node.path);
+            } else {
+              STATE.expandedPaths.add(node.path);
+            }
+            renderFolderTree();
+          });
+
+          folderList.appendChild(folderEl);
+
+          if (isExpanded && node.children) {
+            node.children.forEach(child => renderNode(child, depth + 1));
+          }
+        } else {
+          // file
+          const fileEl = document.createElement('div');
+          fileEl.className = 'tree-node tree-file tree-file-' + node.fileType;
+          fileEl.style.paddingLeft = (8 + depth * 14) + 'px';
+
+          const isActive = STATE.currentFile && STATE.currentFile.fullPath === node.fullPath;
+          if (isActive) fileEl.classList.add('active');
+
+          const iconMap = {
+            md: '📄', image: '🖼️', video: '🎬', audio: '🎵',
+            pdf: '📕', text: '📃', other: '📎'
+          };
+
+          fileEl.innerHTML = `
+            <span class="tree-icon">${iconMap[node.fileType] || '📎'}</span>
+            <span class="tree-name">${node.name}</span>
+          `;
+          fileEl.addEventListener('click', () => {
+            showFileFromTree(node);
+          });
+          folderList.appendChild(fileEl);
+        }
+      };
+
+      // 根目录特殊处理
+      if (STATE.tree.children && STATE.tree.children.length > 0) {
+        STATE.tree.children.forEach(child => renderNode(child, 0));
+      } else {
+        folderList.innerHTML = '<div style="padding:20px 12px; color:var(--text-muted); font-size:12px; text-align:center;">📭 空文件夹</div>';
+      }
+    }
+
+    function showFileFromTree(node) {
+      STATE.currentFile = node;
+      const previewArea = document.getElementById('previewArea');
+
+      if (node.fileType === 'md') {
+        // md 文件：渲染 markdown
+        let htmlContent = marked.parse(node.content || '');
+        htmlContent = enhanceMediaTags(htmlContent, '');
+
+        previewArea.innerHTML = `
+          <div class="preview-header">
+            <div class="preview-breadcrumb">
+              📄 <strong>${node.name}</strong>
+              <span style="color:var(--text-muted); margin-left:8px;">${formatSize(node.size)} · ${(node.content || '').length} 字</span>
+            </div>
+            <div class="preview-actions">
+              <button class="fav-toggle-btn" id="favToggleBtn">☆ 收藏</button>
+            </div>
+          </div>
+          <div class="md-content">${htmlContent}</div>
+        `;
+        bindFavButton(node);
+        previewArea.scrollTop = 0;
+      } else if (node.fileType === 'image') {
+        // 图片：直接 base64 嵌入
+        previewArea.innerHTML = `<div class="preview-header"><div class="preview-breadcrumb">🖼️ <strong>${node.name}</strong> · ${formatSize(node.size)}</div></div><div class="preview-media"><div class="media-loading">⏳ 加载中...</div></div>`;
+        loadAndShowMedia(node);
+      } else if (node.fileType === 'video') {
+        // 视频：base64 嵌入
+        previewArea.innerHTML = `<div class="preview-header"><div class="preview-breadcrumb">🎬 <strong>${node.name}</strong> · ${formatSize(node.size)}</div></div><div class="preview-media"><div class="media-loading">⏳ 加载中...</div></div>`;
+        loadAndShowMedia(node);
+      } else if (node.fileType === 'audio') {
+        previewArea.innerHTML = `<div class="preview-header"><div class="preview-breadcrumb">🎵 <strong>${node.name}</strong> · ${formatSize(node.size)}</div></div><div class="preview-media"><audio controls style="width:100%;"></audio><div class="media-loading">⏳ 加载音频中...</div></div>`;
+        loadAndShowMedia(node);
+      } else {
+        previewArea.innerHTML = `<div class="preview-header"><div class="preview-breadcrumb">📎 <strong>${node.name}</strong></div></div><div class="preview-media"><p style="text-align:center; color:var(--text-muted); padding:40px;">该文件类型不支持预览<br><small>(${node.ext})</small></p></div>`;
+      }
+
+      renderFolderTree();
+    }
+
+    async function loadAndShowMedia(node) {
+      if (!window.electronAPI) return;
+      try {
+        const result = await window.electronAPI.readMedia(node.fullPath);
+        if (!result.success) {
+          document.querySelector('.preview-media').innerHTML =
+            `<p style="text-align:center; color:var(--danger);">❌ 加载失败：${result.error}</p>`;
+          return;
+        }
+
+        const mediaEl = document.querySelector('.preview-media');
+        if (node.fileType === 'image') {
+          mediaEl.innerHTML = `<img src="${result.dataUrl}" style="max-width:100%; max-height:80vh; border-radius:8px; display:block; margin:0 auto;" />`;
+        } else if (node.fileType === 'video') {
+          mediaEl.innerHTML = `<video src="${result.dataUrl}" controls autoplay style="max-width:100%; max-height:80vh; border-radius:8px; display:block; margin:0 auto; background:#000;"></video>`;
+        } else if (node.fileType === 'audio') {
+          const audio = mediaEl.querySelector('audio');
+          if (audio) audio.src = result.dataUrl;
+          const loading = mediaEl.querySelector('.media-loading');
+          if (loading) loading.remove();
+        }
+      } catch (e) {
+        document.querySelector('.preview-media').innerHTML =
+          `<p style="text-align:center; color:var(--danger);">❌ 错误：${e.message}</p>`;
+      }
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '0 B';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+
+    function bindFavButton(node) {
+      const fileKey = node.fullPath;
+      const isFav = STATE.favorites.some(f => f.key === fileKey && f.moduleId === STATE.currentModuleId);
+      const btn = document.getElementById('favToggleBtn');
+      if (isFav) {
+        btn.classList.add('active');
+        btn.innerHTML = '⭐ 已收藏';
+      }
+      btn.addEventListener('click', () => {
+        toggleFavoriteByPath(fileKey, node);
+        showFileFromTree(node);
+      });
+    }
+
+    function toggleFavoriteByPath(key, node) {
+      const idx = STATE.favorites.findIndex(f => f.key === key && f.moduleId === STATE.currentModuleId);
+      if (idx >= 0) {
+        STATE.favorites.splice(idx, 1);
+      } else {
+        STATE.favorites.push({
+          key: key,
+          folder: node.name,
+          fileName: node.name,
+          moduleId: STATE.currentModuleId,
+          timestamp: Date.now()
+        });
+      }
+      localStorage.setItem('fish_favorites', JSON.stringify(STATE.favorites));
+      renderFavorites();
+      renderFolderTree();
+    }
+
+    /* ========================================================== */
+    /* 收藏夹                                                      */
+    /* ========================================================== */
+
+    function toggleFavorite(folder, file) {
+      const key = `${folder}/${file.name}`;
+      const idx = STATE.favorites.findIndex(f => f.key === key && f.moduleId === STATE.currentModuleId);
+
+      if (idx >= 0) {
+        STATE.favorites.splice(idx, 1);
+      } else {
+        STATE.favorites.push({
+          key: key, folder: folder, fileName: file.name,
+          moduleId: STATE.currentModuleId, timestamp: Date.now()
+        });
+      }
+
+      localStorage.setItem('fish_favorites', JSON.stringify(STATE.favorites));
+      renderFavorites();
+      renderFolderTree();
+      updateStats();
+    }
+
+    function renderFavorites() {
+      const section = document.getElementById('favoritesSection');
+      const list = document.getElementById('favoritesList');
+
+      const moduleFavs = STATE.favorites.filter(f => f.moduleId === STATE.currentModuleId);
+
+      document.getElementById('favoritesCount').textContent = moduleFavs.length;
+
+      if (moduleFavs.length === 0) {
+        section.style.display = 'none';
+        list.innerHTML = '';
+        return;
+      }
+
+      section.style.display = 'block';
+      list.innerHTML = '';
+
+      moduleFavs.forEach(fav => {
+        if (!STATE.data || !STATE.data[fav.folder]) {
+          // 即使当前 data 里没有这个文件，也显示在收藏里
+          renderFavoriteItem(list, fav, null);
+          return;
+        }
+        const file = STATE.data[fav.folder].find(f => f.name === fav.fileName);
+        renderFavoriteItem(list, fav, file);
+      });
+    }
+
+    function renderFavoriteItem(list, fav, file) {
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      item.innerHTML = `
+        <span style="display:flex; align-items:center; gap:4px; flex:1; overflow:hidden;">
+          <span style="color:var(--favorite);">⭐</span>
+          <span class="file-item-name">${fav.fileName}</span>
+        </span>
+        <span class="file-item-fav active" data-key="${fav.key}">×</span>
+      `;
+      item.addEventListener('click', (e) => {
+        if (e.target.classList.contains('file-item-fav')) {
+          // 取消收藏
+          const idx = STATE.favorites.findIndex(f => f.key === fav.key && f.moduleId === fav.moduleId);
+          if (idx >= 0) {
+            STATE.favorites.splice(idx, 1);
+            localStorage.setItem('fish_favorites', JSON.stringify(STATE.favorites));
+            renderFavorites();
+            renderFolderTree();
+            updateStats();
+          }
+          e.stopPropagation();
+          return;
+        }
+        if (file) showFile(fav.folder, file);
+        else if (STATE.data && STATE.data[fav.folder]) {
+          alert('收藏的文件已不存在，请重新加载');
+        }
+      });
+      list.appendChild(item);
+    }
+
+    /* ========================================================== */
+    /* md 文件预览（支持图片+视频）                                */
+    /* ========================================================== */
+
+    function showFile(folderName, file) {
+      STATE.currentFolder = folderName;
+      STATE.currentFile = file;
+
+      const previewArea = document.getElementById('previewArea');
+      let htmlContent = marked.parse(file.content);
+
+      // 为图片和视频添加本地路径处理
+      // 注意：HTML 版本对 file:// 路径的图片/视频支持有限
+      htmlContent = enhanceMediaTags(htmlContent, folderName);
+
+      const isFav = STATE.favorites.some(f => f.key === `${folderName}/${file.name}` && f.moduleId === STATE.currentModuleId);
+
+      previewArea.innerHTML = `
+        <div class="preview-header">
+          <div class="preview-breadcrumb">
+            📂 ${folderName} / <strong>${file.name}</strong>
+            <span style="color:var(--text-muted); margin-left:8px;">📝 ${file.content.length} 字</span>
+          </div>
+          <div class="preview-actions">
+            <button class="fav-toggle-btn ${isFav ? 'active' : ''}" id="favToggleBtn">
+              ${isFav ? '⭐ 已收藏' : '☆ 收藏'}
+            </button>
+          </div>
+        </div>
+        <div class="md-content">
+          ${htmlContent}
+        </div>
+      `;
+
+      document.getElementById('favToggleBtn').addEventListener('click', () => {
+        toggleFavorite(folderName, file);
+        showFile(folderName, file);
+      });
+
+      previewArea.scrollTop = 0;
+    }
+
+    // 兼容旧调用（folderName 是文件对象）
+    function _oldShowFile(folderName, file) {
+      // 把旧格式转成新格式
+      showFileFromTree({
+        name: file.file || file.name,
+        fileType: 'md',
+        fullPath: file.fullPath || '',
+        content: file.content,
+        size: (file.content || '').length
+      });
+    }
+
+    function enhanceMediaTags(html, folderName) {
+      // 处理 <img> 和 <video> 标签
+      // - 网络图片/视频：直接显示
+      // - 本地路径：在 Electron 环境尝试读取，否则显示提示
+
+      // 处理 <img src="...">
+      html = html.replace(/<img src="([^"]+)"([^>]*)>/g, (match, src, rest) => {
+        if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+          return match;
+        }
+        // 本地路径
+        if (window.electronAPI) {
+          // Electron 环境：渲染为占位符，点击加载
+          const encodedSrc = encodeURIComponent(src);
+          return `<div class="media-placeholder" data-media-src="${encodedSrc}" data-media-type="image" style="display:inline-block; padding:8px 12px; background:var(--bg-card); border:1px dashed var(--accent); border-radius:6px; color:var(--accent); cursor:pointer; margin:8px 0;">
+            🖼️ 点击加载图片：${src}
+          </div>`;
+        }
+        return `<div class="media-fallback">🖼️ 本地图片：${src}<br><small>HTML 版本需用 Electron 启动才能预览</small></div>`;
+      });
+
+      // 处理 <video src="...">
+      html = html.replace(/<video src="([^"]+)"([^>]*)>/g, (match, src, rest) => {
+        if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+          return match;
+        }
+        if (window.electronAPI) {
+          const encodedSrc = encodeURIComponent(src);
+          return `<div class="media-placeholder" data-media-src="${encodedSrc}" data-media-type="video" style="display:block; padding:12px 16px; background:var(--bg-card); border:1px dashed var(--accent); border-radius:6px; color:var(--accent); cursor:pointer; margin:8px 0; text-align:center;">
+            🎬 点击加载视频：${src}
+          </div>`;
+        }
+        return `<div class="media-fallback">🎬 本地视频：${src}<br><small>HTML 版本需用 Electron 启动才能预览</small></div>`;
+      });
+
+      return html;
+    }
+
+    // 媒体点击加载（Electron 环境）
+    async function loadMediaElement(element) {
+      const src = decodeURIComponent(element.dataset.mediaSrc);
+      const type = element.dataset.mediaType;
+
+      // 解析路径（相对于模块根目录）
+      const module = getAllModules().find(m => m.id === STATE.currentModuleId);
+      let fullPath = src;
+
+      if (STATE.lastFolderInfo && STATE.lastFolderInfo.path) {
+        // 当前文件夹的根路径
+        const basePath = STATE.lastFolderInfo.path;
+        // 尝试拼接
+        fullPath = src.startsWith('/') ? src : `${basePath}/${src}`;
+      } else if (module && module.path) {
+        fullPath = src.startsWith('/') ? src : `${module.path}/${src}`;
+      }
+
+      element.innerHTML = '⏳ 加载中...';
+      const result = await window.electronAPI.readMedia(fullPath);
+
+      if (!result.success) {
+        element.innerHTML = `❌ 加载失败：${result.error}<br><small>${fullPath}</small>`;
+        return;
+      }
+
+      if (type === 'image') {
+        element.outerHTML = `<img src="${result.dataUrl}" style="max-width:100%; border-radius:8px; margin:12px 0; display:block;" />`;
+      } else {
+        element.outerHTML = `<video src="${result.dataUrl}" controls style="max-width:100%; border-radius:8px; margin:12px 0; display:block; background:#000;"></video>`;
+      }
+    }
+
+    // 绑定媒体占位符点击事件（事件委托）
+    document.addEventListener('click', (e) => {
+      const placeholder = e.target.closest('.media-placeholder');
+      if (placeholder && window.electronAPI) {
+        loadMediaElement(placeholder);
+      }
+    });
+
+    function getFolderBasePath(folderName) {
+      const module = getAllModules().find(m => m.id === STATE.currentModuleId);
+      return module?.path || '';
+    }
+
+    /* ========================================================== */
+    /* 搜索                                                        */
+    /* ========================================================== */
+
+    function handleSearch(keyword) {
+      STATE.searchKeyword = keyword.toLowerCase();
+      const kw = STATE.searchKeyword;
+
+      const previewArea = document.getElementById('previewArea');
+
+      // 清除搜索 → 恢复当前文件
+      if (!kw) {
+        if (STATE.currentFile && STATE.currentFile.type === 'file') {
+          showFileFromTree(STATE.currentFile);
+        } else {
+          previewArea.innerHTML = `<div class="preview-empty"><div class="preview-empty-icon">🔍</div><div class="preview-empty-text">从左侧选择文件或输入关键词搜索</div></div>`;
+        }
+        return;
+      }
+
+      // 遍历树
+      const matches = [];
+      const walkTree = (node) => {
+        if (node.type === 'file' && node.content) {
+          if (node.name.toLowerCase().includes(kw) ||
+              node.content.toLowerCase().includes(kw)) {
+            matches.push(node);
+          }
+        }
+        if (node.children) node.children.forEach(walkTree);
+      };
+      if (STATE.tree) walkTree(STATE.tree);
+
+      if (matches.length === 0) {
+        previewArea.innerHTML = `<div class="preview-empty"><div class="preview-empty-icon">🔍</div><div class="preview-empty-text">未找到匹配 "<strong>${keyword}</strong>" 的内容</div></div>`;
+        return;
+      }
+
+      let html = `<div class="md-content"><h2>🔍 搜索结果：${matches.length} 个匹配 "${keyword}"</h2>`;
+      matches.forEach(node => {
+        const excerpt = extractExcerpt(node.content || '', keyword);
+        html += `
+          <div style="background:var(--bg-card); padding:16px; border-radius:8px; margin:12px 0; border-left:4px solid var(--accent); cursor:pointer;" onclick="searchJump('${encodeURIComponent(node.fullPath)}')">
+            <div style="font-size:12px; color:var(--text-muted);">📄 ${node.name}</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:6px;">${highlightKeyword(excerpt, keyword)}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      previewArea.innerHTML = html;
+    }
+
+    function searchJump(encodedPath) {
+      const target = decodeURIComponent(encodedPath);
+      const walkTree = (node) => {
+        if (node.type === 'file' && node.fullPath === target) {
+          showFileFromTree(node);
+          return true;
+        }
+        if (node.children) {
+          for (const c of node.children) {
+            if (walkTree(c)) return true;
+          }
+        }
+        return false;
+      };
+      if (STATE.tree) walkTree(STATE.tree);
+    }
+
+    function extractExcerpt(content, keyword, contextLen = 80) {
+      const idx = content.toLowerCase().indexOf(keyword.toLowerCase());
+      if (idx === -1) return content.substring(0, contextLen * 2) + '...';
+      const start = Math.max(0, idx - contextLen);
+      const end = Math.min(content.length, idx + keyword.length + contextLen);
+      return (start > 0 ? '...' : '') + content.substring(start, end) + (end < content.length ? '...' : '');
+    }
+
+    function highlightKeyword(text, keyword) {
+      if (!keyword) return text;
+      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<span style="background:var(--accent); color:white; padding:0 4px; border-radius:3px;">$1</span>');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      handleSearch(e.target.value);
+    });
+
+    /* ========================================================== */
+    /* 统计                                                        */
+    /* ========================================================== */
+
+    function updateStats() {
+      const favCount = STATE.favorites.filter(f => f.moduleId === STATE.currentModuleId).length;
+
+      if (!STATE.tree) {
+        document.getElementById('statFiles').textContent = '0';
+        document.getElementById('statWords').textContent = '0';
+        document.getElementById('statMaxEng').textContent = '-';
+        document.getElementById('statFav').textContent = favCount;
+        return;
+      }
+
+      let totalFiles = 0, totalWords = 0, maxEng = 0;
+      const walkTree = (node) => {
+        if (node.type === 'file') {
+          totalFiles++;
+          if (node.content) {
+            totalWords += node.content.length;
+            const m = node.content.match(/(\d+\.?\d*)w/);
+            const eng = m ? parseFloat(m[1]) * 10000 : 0;
+            if (eng > maxEng) maxEng = eng;
+          }
+        }
+        if (node.children) node.children.forEach(walkTree);
+      };
+      walkTree(STATE.tree);
+
+      document.getElementById('statFiles').textContent = totalFiles;
+      document.getElementById('statWords').textContent = (totalWords / 1000).toFixed(1) + 'k';
+      document.getElementById('statMaxEng').textContent = maxEng > 0 ? (maxEng / 10000).toFixed(1) + 'w' : '-';
+      document.getElementById('statFav').textContent = favCount;
+    }
+
+    /* ========================================================== */
+    /* 选择本地文件夹                                              */
+    /* ========================================================== */
+
+    document.getElementById('selectFolderBtn').addEventListener('click', async () => {
+      if (!window.electronAPI) {
+        console.warn('仅支持 Electron 模式');
+        return;
+      }
+
+      try {
+        const result = await window.electronAPI.selectAndRead();
+        if (!result || result.canceled) return;
+        if (!result.success) {
+          console.warn('读取失败:', result.error);
+          showToast('❌ 读取失败: ' + (result.error || '未知错误'), '#ef4444');
+          return;
+        }
+
+        // 把选中的路径存回当前模块
+        const currentModule = customModules.find(m => m.id === STATE.currentModuleId);
+        if (currentModule) {
+          currentModule.path = result.path;
+          localStorage.setItem('fish_custom_modules', JSON.stringify(customModules));
+          // 更新卡片显示的路径
+          document.getElementById('currentModulePath').textContent = result.path;
+        }
+
+        applyFolderData(result.data, result.path);
+        try { await window.electronAPI.watchFolder(result.path); } catch(e) {
+          console.warn('watchFolder:', e.message);
+        }
+        showToast('✅ 已加载 ' + (result.data?.children?.length || 0) + ' 个条目');
+      } catch (err) {
+        console.warn('选择文件夹失败:', err);
+        showToast('❌ ' + err.message, '#ef4444');
+      }
+    });
+
+    /* ========================================================== */
+    /* 选择本地文件夹（Electron 版本）                            */
+    /* ========================================================== */
+
+    function applyFolderData(tree, folderPath) {
+      // 兼容旧的 data 结构：如果是 {folderName: [files]} 格式，转成树
+      if (tree && !tree.children && typeof tree === 'object' && !tree.type) {
+        const newTree = { name: '根', type: 'folder', path: folderPath, children: [] };
+        for (const [folder, files] of Object.entries(tree)) {
+          newTree.children.push({
+            name: folder,
+            type: 'folder',
+            path: folderPath + '/' + folder,
+            children: files.map(f => ({ ...f, type: 'file', fileType: 'md' }))
+          });
+        }
+        tree = newTree;
+      }
+
+      let fileCount = 0;
+      const countFiles = (node) => {
+        if (node.type === 'file') fileCount++;
+        if (node.children) node.children.forEach(countFiles);
+      };
+      if (tree) countFiles(tree);
+
+      console.log(`✅ 加载完成: ${tree ? tree.children.length : 0} 个根目录, ${fileCount} 个文件`);
+
+      if (!tree || fileCount === 0) {
+        alert('该文件夹中没有可显示的文件');
+        return;
+      }
+
+      STATE.lastFolderInfo = {
+        moduleId: STATE.currentModuleId,
+        timestamp: Date.now(),
+        fileCount: fileCount,
+        path: folderPath
+      };
+      localStorage.setItem('fish_last_folder', JSON.stringify(STATE.lastFolderInfo));
+
+      STATE.tree = tree;
+      STATE.data = tree; // 兼容旧引用
+      STATE.expandedPaths = new Set(); // 默认全部折叠
+
+      // 自动展开前 2 层
+      const expandTop = (node, depth) => {
+        if (depth < 2 && node.type === 'folder') {
+          STATE.expandedPaths.add(node.path);
+          if (node.children) node.children.forEach(c => expandTop(c, depth + 1));
+        }
+      };
+      if (tree.children) tree.children.forEach(c => expandTop(c, 1));
+
+      renderFolderTree();
+      updateStats();
+      renderFavorites();
+
+      // 自动选中第一个 md 文件
+      const findFirstMd = (node) => {
+        if (node.type === 'file' && node.fileType === 'md') return node;
+        if (node.children) {
+          for (const child of node.children) {
+            const found = findFirstMd(child);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const firstMd = findFirstMd(tree);
+      if (firstMd) showFileFromTree(firstMd);
+    }
+
+    // 监听文件夹变化（Electron 模式）
+    async function setupElectronWatcher() {
+      if (!window.electronAPI) return;
+      if (window.electronAPI._watcherSetup) return;
+      window.electronAPI._watcherSetup = true;
+
+      window.electronAPI.onFolderChanged(async (data) => {
+        console.log('📁 文件夹变化:', data);
+
+        // 自动重新加载（防抖：500ms 内多次变化只触发一次）
+        clearTimeout(window._reloadTimer);
+        window._reloadTimer = setTimeout(async () => {
+          if (STATE.lastFolderInfo && STATE.lastFolderInfo.path) {
+            console.log('🔄 自动重新加载...');
+            try {
+              const result = await window.electronAPI.readByPath(STATE.lastFolderInfo.path);
+              if (result.success) {
+                applyFolderData(result.data, result.path);
+                showToast(`📁 文件已更新：${data.filename || ''}`);
+              }
+            } catch(e) {
+              console.warn('自动重新加载失败:', e);
+            }
+          }
+        }, 500);
+      });
+    }
+
+    function showToast(message, bgColor) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed; top: 80px; right: 20px; z-index: 10000;
+        background: ${bgColor || 'var(--accent)'}; color: white;
+        padding: 12px 20px; border-radius: 8px;
+        box-shadow: 0 4px 16px var(--shadow);
+        font-size: 13px; animation: slideIn 0.3s ease;
+        max-width: 400px; word-break: break-word;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      console.log('📢 TOAST:', message);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+
+    /* ========================================================== */
+    /* 初始化                                                      */
+    /* ========================================================== */
+
+    function init() {
+      setTheme(STATE.theme);
+      document.getElementById('themeSelect').value = STATE.theme;
+
+      // 不再自动加载任何模块内容 — 纯手动模式
+      // 只初始化模块列表，但不触发 switchModule
+      renderFolderTree();
+      renderFavorites();
+      updateStats();
+
+      // Electron 环境：只准备好监听器（供用户手动选择文件夹后使用）
+      if (window.electronAPI) {
+        console.log('✅ Electron 模式启动（纯手动）');
+        setupElectronWatcher();
+      } else {
+        console.log('✅ 浏览器模式启动');
+      }
+
+      console.log('🐟 鱼儿知识库浏览器启动完成（纯手动模式）');
+    }
+
+    init();
+  </script>
+</body>
+</html>
